@@ -9,6 +9,7 @@ contract PolygonZkEVMBridgeInvestable is PolygonZkEVMBridge, OwnableUpgradeable 
 
     error ZeroAddress();
     error OnlyInvestmentManager();
+
     event UpdateInvestmentManager(address indexed _investmentManager, address indexed _tokenManaged);
 
     mapping(address => address) investmentManagers;
