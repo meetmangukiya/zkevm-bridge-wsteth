@@ -22,13 +22,22 @@ contract LidoInvestmentManager is Ownable {
     event SentExcessYield(address recipient, uint256 amt);
 
     PolygonZkEVMBridgeInvestable public immutable bridge;
+    // @notice percent of ETH that _should_ be kept liquid
+    // @dev % below which redemptions can be made. This is always less than targetPercentBips.
     uint256 public reservePercentBips;
+    // @notice percent of ETH above which investments should be made
+    // @dev % above which investments can be made. This is always more than reservePercentBips.
     uint256 public targetPercentBips;
+    // @notice address to send excess yield to
     address public excessYieldRecipient;
 
+    // @notice amount of ETH invested in stETH
     uint256 public invested;
+    // @notice amount of ETH that is in withdrawal queue for redemptions.
     uint256 public pendingRedemptions;
+    // @notice request ids for all redemptions that have ever been queued
     uint256[] public redemptionRequests;
+    // @notice index of the next redemption request to claim
     uint256 public nextRequestIndexToClaim;
 
     constructor(
@@ -88,14 +97,12 @@ contract LidoInvestmentManager is Ownable {
     }
 
     function claimNextNWithdrawals(uint256 _n) external {
-        uint256 totalRequests = redemptionRequests.length;
-        uint256 lastIndex = nextRequestIndexToClaim + _n - 1;
         uint256 nextToClaim = nextRequestIndexToClaim;
         uint256[] memory requestIds = new uint[](_n);
 
         for (uint256 i = 0; i < _n;) {
-            if (i >= totalRequests) break;
             requestIds[i] = redemptionRequests[nextToClaim];
+            if (requestIds[i] == 0) revert InvalidRequestId();
 
             unchecked {
                 ++i;
