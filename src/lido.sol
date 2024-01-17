@@ -1,7 +1,13 @@
+pragma solidity ^0.8.20;
+
 interface IStETH {
     function balanceOf(address) external view returns (uint256);
     function submit(address _referral) external payable returns (uint256);
     function transfer(address _to, uint256 _amt) external;
+    function getTotalShares() external view returns (uint256);
+    function getTotalPooledEther() external view returns (uint256);
+    function sharesOf(address) external view returns (uint256);
+    function getPooledEthByShares(uint256) external view returns (uint256);
 }
 
 interface IWithdrawalQueueERC721 {
@@ -31,7 +37,14 @@ interface IWithdrawalQueueERC721 {
 
     function claimWithdrawal(uint256 _requestId) external;
 
-    function getLastFinalizedRequestId() public view returns (uint256);
+    function getLastFinalizedRequestId() external view returns (uint256);
+
+    function getLastCheckpointIndex() external view returns (uint256);
+
+    function findCheckpointHints(uint256[] calldata _requestIds, uint256 _firstIndex, uint256 _lastIndex)
+        external
+        view
+        returns (uint256[] memory hintIds);
 }
 
 IStETH constant stETH = IStETH(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84);

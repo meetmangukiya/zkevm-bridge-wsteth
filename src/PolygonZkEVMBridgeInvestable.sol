@@ -1,3 +1,5 @@
+pragma solidity ^0.8.20;
+
 import { PolygonZkEVMBridge, IBasePolygonZkEVMGlobalExitRoot } from "zkevm-contracts/PolygonZkEVMBridge.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -48,10 +50,19 @@ contract PolygonZkEVMBridgeInvestable is PolygonZkEVMBridge, OwnableUpgradeable 
     {
         if (_amount == 0) return;
         if (_token == TOKEN_ETH_NATIVE) {
-            payable(_receiver).call{ value: _amount }("");
+            (bool success, bytes memory ret) = payable(_receiver).call{ value: _amount }("");
+            if (!success) {
+                assembly {
+                    revert(add(ret, 0x20), mload(ret))
+                }
+            }
         } else {
             IERC20(_token).safeTransfer(_receiver, _amount);
         }
+    }
+
+    function depositEth() external payable onlyInvestmentManager(msg.sender, TOKEN_ETH_NATIVE) {
+        // nothing to do
     }
 
     modifier onlyInvestmentManager(address _manager, address _token) {
